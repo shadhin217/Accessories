@@ -1,0 +1,79 @@
+import math
+import ipywidgets as widgets
+from IPython.display import display, clear_output
+
+display_text = widgets.Text(
+    value='',
+    placeholder='Enter expression or use buttons...',
+    description='Input:',
+    disabled=False,
+    layout=widgets.Layout(width='500px')
+)
+
+output_box = widgets.Output()
+
+def on_button_clicked(b):
+    current_text = display_text.value
+    btn_val = b.description
+
+    if btn_val == 'C':
+        display_text.value = ''
+    elif btn_val == '⌫':
+        display_text.value = current_text[:-1]
+    elif btn_val == '=':
+        try:
+
+            allowed_names = {
+                'sin': math.sin, 'cos': math.cos, 'tan': math.tan,
+                'asin': math.asin, 'acos': math.acos, 'atan': math.atan,
+                'sqrt': math.sqrt, 'log': math.log10, 'ln': math.log,
+                'exp': math.exp, 'pi': math.pi, 'e': math.e,
+                'factorial': math.factorial, 'radians': math.radians, 'degrees': math.degrees
+            }
+
+            expr = current_text.replace('^', '**')
+
+            result = eval(expr, {"__builtins__": {}}, allowed_names)
+            display_text.value = str(result)
+
+            with output_box:
+                clear_output(wait=True)
+                print(f"Success: {current_text} = {result}")
+        except Exception as e:
+            with output_box:
+                clear_output(wait=True)
+                print(f"Error: Invalid expression ({e})")
+    else:
+
+        display_text.value = current_text + btn_val
+
+buttons_layout = [
+    ['sin(', 'cos(', 'tan(', 'C', '⌫'],
+    ['asin(', 'acos(', 'atan(', 'sqrt(', '^'],
+    ['log(', 'ln(', 'pi', 'e', '('],
+    ['7', '8', '9', '/', ')'],
+    ['4', '5', '6', '*', 'factorial('],
+    ['1', '2', '3', '-', 'radians('],
+    ['0', '.', '=', '+', 'degrees(']
+]
+
+button_widgets = []
+for row in buttons_layout:
+    row_buttons = []
+    for text in row:
+        btn = widgets.Button(
+            description=text,
+            layout=widgets.Layout(width='70px', height='40px')
+        )
+        btn.on_click(on_button_clicked)
+        row_buttons.append(btn)
+    button_widgets.append(widgets.HBox(row_buttons))
+
+calculator_ui = widgets.VBox([
+    widgets.Label("### Google Colab Scientific Calculator"),
+    display_text,
+    *button_widgets,
+    output_box
+])
+
+display(calculator_ui)
